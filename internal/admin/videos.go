@@ -93,7 +93,7 @@ func (a *Admin) ServePlayVideo(w http.ResponseWriter, r *http.Request) {
 		mode = "mirror"
 	}
 	epoch := a.Director.Switch(scene.SceneVideo, map[string]any{
-		"url":      meta.URLPath,
+		"url":      a.BasePath + meta.URLPath,
 		"mode":     mode,
 		"video_id": meta.ID,
 		"filename": meta.Filename,

@@ -93,7 +93,7 @@ func (a *Admin) ServePlayImage(w http.ResponseWriter, r *http.Request) {
 		mode = "span"
 	}
 	epoch := a.Director.Switch(scene.SceneImage, map[string]any{
-		"url":      meta.URLPath,
+		"url":      a.BasePath + meta.URLPath,
 		"mode":     mode,
 		"image_id": meta.ID,
 		"filename": meta.Filename,
