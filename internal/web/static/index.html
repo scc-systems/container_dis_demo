@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="base-path" content="{{.BasePath}}">
+<title>wallsync</title>
+<link rel="stylesheet" href="{{.BasePath}}/css/base.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "{{.BasePath}}/js/vendor/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<div id="splash">Connecting…</div>
+<div id="debug-hud" hidden></div>
+<script type="module" src="{{.BasePath}}/js/main.js"></script>
+</body>
+</html>

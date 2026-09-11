@@ -1,0 +1,21 @@
+services:
+  wallsync:
+    build: .
+    image: wallsync:latest
+    container_name: wallsync
+    ports:
+      - "8080:8080"
+    environment:
+      WALLSYNC_ADDR: ":8080"
+      WALLSYNC_TICK_HZ: "30"
+      WALLSYNC_PING_MS: "1000"
+      WALLSYNC_INITIAL_SCENE: "three-unified"
+      WALLSYNC_AUTOROTATE_S: "0"
+      WALLSYNC_MEDIA_DIR: "/data/videos"
+      WALLSYNC_MAX_UPLOAD_MB: "500"
+    volumes:
+      - wallsync-media:/data/videos
+    restart: unless-stopped
+
+volumes:
+  wallsync-media:

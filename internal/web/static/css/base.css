@@ -1,0 +1,53 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  color: #dfe6ef;
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  cursor: none;
+}
+
+#stage {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+}
+
+#splash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #6b7684;
+  font-size: 28px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 300ms ease;
+}
+#splash.hidden { opacity: 0; }
+#splash.conflict { color: #f87171; }
+
+#debug-hud {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 320px;
+  padding: 10px 12px;
+  background: rgba(9, 13, 18, 0.85);
+  border: 1px solid #202b39;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #dfe6ef;
+  z-index: 9999;
+  pointer-events: none;
+  white-space: pre;
+}
+#debug-hud .warn { color: #fbbf24; }
+#debug-hud .err  { color: #f87171; }
