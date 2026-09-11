@@ -3,8 +3,9 @@ services:
     image: scc-registry.lancs.ac.uk/wallsync:1
     container_name: wallsync
     restart: unless-stopped
-    env_file:
-      - /docker/env/wallsync.env
+    env_file: /docker/env/wallsync.env
+    tmpfs:
+      - /tmp
     volumes:
       - /docker/vols/wallsync:/data/videos
     networks:
@@ -20,7 +21,7 @@ services:
       - "traefik.enable=true"
 
       # Public routes — no auth, restricted to ulancs network via Traefik chain-no-auth-ulancs@file middleware
-      - "traefik.http.routers.wallsync.rule=Host(`scc-display.scc.lancs.ac.uk`) && PathPrefix(`/wallsync`)"
+      - "traefik.http.routers.wallsync.rule=Host(`scc-www.lancs.ac.uk`) && PathPrefix(`/wallsync`)"
       - "traefik.http.routers.wallsync.middlewares=strip-wallsync@docker,chain-no-auth-ulancs@file"
       - "traefik.http.routers.wallsync.entrypoints=websecure"
       - "traefik.http.routers.wallsync.tls=true"
@@ -28,7 +29,7 @@ services:
       - "traefik.http.routers.wallsync.service=svc_wallsync"
 
       # Admin routes — basicauth (higher priority due to longer PathPrefix)
-      - "traefik.http.routers.wallsync-admin.rule=Host(`scc-display.scc.lancs.ac.uk`) && PathPrefix(`/wallsync/admin`)"
+      - "traefik.http.routers.wallsync-admin.rule=Host(`scc-www.lancs.ac.uk`) && PathPrefix(`/wallsync/admin`)"
       - "traefik.http.routers.wallsync-admin.middlewares=strip-wallsync@docker,wallsync-bauth@docker,chain-no-auth-ulancs@file"
       - "traefik.http.routers.wallsync-admin.entrypoints=websecure"
       - "traefik.http.routers.wallsync-admin.tls=true"
