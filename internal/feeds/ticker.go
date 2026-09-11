@@ -6,10 +6,10 @@ import (
 	"math"
 	"time"
 
-	"github.com/eleanor/wallsync/internal/hub"
-	"github.com/eleanor/wallsync/internal/protocol"
-	"github.com/eleanor/wallsync/internal/scene"
-	"github.com/eleanor/wallsync/internal/timing"
+	"github.com/scc-systems/wallsync/internal/hub"
+	"github.com/scc-systems/wallsync/internal/protocol"
+	"github.com/scc-systems/wallsync/internal/scene"
+	"github.com/scc-systems/wallsync/internal/timing"
 )
 
 type Ticker struct {

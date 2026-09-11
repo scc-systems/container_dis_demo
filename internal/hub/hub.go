@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/eleanor/wallsync/internal/timing"
+	"github.com/scc-systems/wallsync/internal/timing"
 )
 
 type Hub struct {

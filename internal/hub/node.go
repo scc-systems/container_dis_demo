@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/eleanor/wallsync/internal/protocol"
-	"github.com/eleanor/wallsync/internal/timing"
+	"github.com/scc-systems/wallsync/internal/protocol"
+	"github.com/scc-systems/wallsync/internal/timing"
 )
 
 // WelcomeProvider gives the current welcome payload for a newly-connected node.

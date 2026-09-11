@@ -5,8 +5,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/eleanor/wallsync/internal/media"
-	"github.com/eleanor/wallsync/internal/scene"
+	"github.com/scc-systems/wallsync/internal/media"
+	"github.com/scc-systems/wallsync/internal/scene"
 )
 
 func (a *Admin) ServeListVideos(w http.ResponseWriter, r *http.Request) {

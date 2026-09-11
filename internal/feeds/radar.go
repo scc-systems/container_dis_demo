@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/eleanor/wallsync/internal/protocol"
+	"github.com/scc-systems/wallsync/internal/protocol"
 )
 
 // RadarAngle returns the sweep angle in degrees for t_ms.

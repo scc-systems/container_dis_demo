@@ -7,10 +7,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/eleanor/wallsync/internal/config"
-	"github.com/eleanor/wallsync/internal/hub"
-	"github.com/eleanor/wallsync/internal/protocol"
-	"github.com/eleanor/wallsync/internal/timing"
+	"github.com/scc-systems/wallsync/internal/config"
+	"github.com/scc-systems/wallsync/internal/hub"
+	"github.com/scc-systems/wallsync/internal/protocol"
+	"github.com/scc-systems/wallsync/internal/timing"
 )
 
 type Snapshot struct {
