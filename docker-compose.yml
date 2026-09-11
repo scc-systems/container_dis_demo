@@ -1,21 +1,46 @@
 services:
   wallsync:
-    build: .
-    image: wallsync:latest
+    image: scc-registry.lancs.ac.uk/wallsync:1
     container_name: wallsync
-    ports:
-      - "8080:8080"
-    environment:
-      WALLSYNC_ADDR: ":8080"
-      WALLSYNC_TICK_HZ: "30"
-      WALLSYNC_PING_MS: "1000"
-      WALLSYNC_INITIAL_SCENE: "three-unified"
-      WALLSYNC_AUTOROTATE_S: "0"
-      WALLSYNC_MEDIA_DIR: "/data/videos"
-      WALLSYNC_MAX_UPLOAD_MB: "500"
-    volumes:
-      - wallsync-media:/data/videos
     restart: unless-stopped
+    env_file:
+      - /docker/env/wallsync.env
+    volumes:
+      - /docker/vols/wallsync:/data/videos
+    networks:
+      - net0
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    logging:
+      driver: syslog
+      options:
+        tag: "docker.wallsync"
+    labels:
+      - "traefik.enable=true"
 
-volumes:
-  wallsync-media:
+      # Public routes — no auth, restricted to ulancs network via Traefik chain-no-auth-ulancs@file middleware
+      - "traefik.http.routers.wallsync.rule=Host(`scc-display.scc.lancs.ac.uk`) && PathPrefix(`/wallsync`)"
+      - "traefik.http.routers.wallsync.middlewares=strip-wallsync@docker,chain-no-auth-ulancs@file"
+      - "traefik.http.routers.wallsync.entrypoints=websecure"
+      - "traefik.http.routers.wallsync.tls=true"
+      - "traefik.http.routers.wallsync.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.wallsync.service=svc_wallsync"
+
+      # Admin routes — basicauth (higher priority due to longer PathPrefix)
+      - "traefik.http.routers.wallsync-admin.rule=Host(`scc-display.scc.lancs.ac.uk`) && PathPrefix(`/wallsync/admin`)"
+      - "traefik.http.routers.wallsync-admin.middlewares=strip-wallsync@docker,wallsync-bauth@docker,chain-no-auth-ulancs@file"
+      - "traefik.http.routers.wallsync-admin.entrypoints=websecure"
+      - "traefik.http.routers.wallsync-admin.tls=true"
+      - "traefik.http.routers.wallsync-admin.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.wallsync-admin.service=svc_wallsync"
+
+      # basicauth middleware — credentials loaded from .env (WALLSYNC_ADMIN_USERS)
+      - "traefik.http.middlewares.wallsync-bauth.basicauth.users=${WALLSYNC_ADMIN_USERS}"
+      - "traefik.http.middlewares.wallsync-bauth.basicauth.removeheader=true"
+
+      # Strip /wallsync prefix before forwarding to the app
+      - "traefik.http.middlewares.strip-wallsync.stripprefix.prefixes=/wallsync"
+
+      - "traefik.http.services.svc_wallsync.loadbalancer.server.port=8080"
+
