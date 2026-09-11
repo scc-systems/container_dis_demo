@@ -21,8 +21,9 @@ services:
       - "traefik.enable=true"
 
       # Public routes — no auth, restricted to ulancs network via Traefik chain-no-auth-ulancs@file middleware
+      # Prefix is NOT stripped here — Go strips /wallsync itself via WALLSYNC_BASE_PATH
       - "traefik.http.routers.wallsync.rule=Host(`scc-www.lancs.ac.uk`) && PathPrefix(`/wallsync`)"
-      - "traefik.http.routers.wallsync.middlewares=strip-wallsync@docker,chain-no-auth-ulancs@file"
+      - "traefik.http.routers.wallsync.middlewares=chain-no-auth-ulancs@file"
       - "traefik.http.routers.wallsync.entrypoints=websecure"
       - "traefik.http.routers.wallsync.tls=true"
       - "traefik.http.routers.wallsync.tls.certresolver=letsencrypt"
@@ -30,7 +31,7 @@ services:
 
       # Admin routes — basicauth (higher priority due to longer PathPrefix)
       - "traefik.http.routers.wallsync-admin.rule=Host(`scc-www.lancs.ac.uk`) && PathPrefix(`/wallsync/admin`)"
-      - "traefik.http.routers.wallsync-admin.middlewares=strip-wallsync@docker,wallsync-bauth@docker,chain-no-auth-ulancs@file"
+      - "traefik.http.routers.wallsync-admin.middlewares=wallsync-bauth@docker,chain-no-auth-ulancs@file"
       - "traefik.http.routers.wallsync-admin.entrypoints=websecure"
       - "traefik.http.routers.wallsync-admin.tls=true"
       - "traefik.http.routers.wallsync-admin.tls.certresolver=letsencrypt"
@@ -39,9 +40,6 @@ services:
       # basicauth middleware — credentials loaded from .env (WALLSYNC_ADMIN_USERS)
       - "traefik.http.middlewares.wallsync-bauth.basicauth.users=${WALLSYNC_ADMIN_USERS}"
       - "traefik.http.middlewares.wallsync-bauth.basicauth.removeheader=true"
-
-      # Strip /wallsync prefix before forwarding to the app
-      - "traefik.http.middlewares.strip-wallsync.stripprefix.prefixes=/wallsync"
 
       - "traefik.http.services.svc_wallsync.loadbalancer.server.port=8080"
 
