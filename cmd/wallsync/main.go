@@ -9,13 +9,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/eleanor/wallsync/internal/admin"
-	"github.com/eleanor/wallsync/internal/config"
-	"github.com/eleanor/wallsync/internal/feeds"
-	"github.com/eleanor/wallsync/internal/hub"
-	"github.com/eleanor/wallsync/internal/media"
-	"github.com/eleanor/wallsync/internal/scene"
-	"github.com/eleanor/wallsync/internal/web"
+	"github.com/scc-systems/wallsync/internal/admin"
+	"github.com/scc-systems/wallsync/internal/config"
+	"github.com/scc-systems/wallsync/internal/feeds"
+	"github.com/scc-systems/wallsync/internal/hub"
+	"github.com/scc-systems/wallsync/internal/media"
+	"github.com/scc-systems/wallsync/internal/scene"
+	"github.com/scc-systems/wallsync/internal/web"
 )
 
 func main() {
