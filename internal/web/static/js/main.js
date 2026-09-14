@@ -27,6 +27,7 @@ sceneHost.register('video',           VideoScene);
 sceneHost.register('image',           ImageScene);
 
 const splash = document.getElementById('splash');
+const splashInner = splash.querySelector('.splash-inner') || splash;
 debugHud.init(nodeId);
 
 // Wire up WS.
@@ -65,7 +66,7 @@ function buildCtx(seed) {
 client.addEventListener('node_taken', () => {
   splash.classList.remove('hidden');
   splash.classList.add('conflict');
-  splash.textContent = 'Node taken — waiting';
+  splashInner.textContent = 'Node taken — waiting';
 });
 
 client.addEventListener('welcome', (ev) => {
@@ -74,7 +75,7 @@ client.addEventListener('welcome', (ev) => {
   sceneCtxCache = buildCtx(p.seed);
   client.backoff = 500; // reset backoff now that we have a good connection
   splash.classList.remove('conflict');
-  splash.textContent = 'Connecting…';
+  splashInner.textContent = 'Connecting…';
   splash.classList.add('hidden');
   sceneHost.requestScene(p.current_scene, p.scene_epoch_ms, { seed: p.seed }, sceneCtxCache);
 });

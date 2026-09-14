@@ -73,7 +73,7 @@ Environment variables:
 | `WALLSYNC_ADDR`            | `:8080`          | HTTP bind address                          |
 | `WALLSYNC_TICK_HZ`         | `30`             | broadcast rate                            |
 | `WALLSYNC_PING_MS`         | `1000`           | heartbeat interval (ms)                   |
-| `WALLSYNC_INITIAL_SCENE`   | `three-unified`  | scene to boot into                        |
+| `WALLSYNC_INITIAL_SCENE`   | `idle`           | scene to boot into                        |
 | `WALLSYNC_AUTOROTATE_S`    | `0` (off)        | if >0, rotate scenes every N seconds      |
 | `WALLSYNC_MEDIA_DIR`       | `./data/videos`  | on-disk root for uploaded videos          |
 | `WALLSYNC_MAX_UPLOAD_MB`   | `500`            | per-upload size cap (megabytes)           |

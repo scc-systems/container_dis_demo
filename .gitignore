@@ -1,3 +1,4 @@
 data/
 /wallsync
 .env
+traefik-wallsync.yml

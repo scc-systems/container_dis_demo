@@ -10,6 +10,8 @@ import (
 	"github.com/coder/websocket"
 	"github.com/scc-systems/wallsync/internal/hub"
 	"github.com/scc-systems/wallsync/internal/media"
+	"github.com/scc-systems/wallsync/internal/playback"
+	"github.com/scc-systems/wallsync/internal/playlist"
 	"github.com/scc-systems/wallsync/internal/protocol"
 	"github.com/scc-systems/wallsync/internal/scene"
 	"github.com/scc-systems/wallsync/internal/timing"
@@ -20,6 +22,8 @@ type Admin struct {
 	Director       *scene.Director
 	Logger         *slog.Logger
 	Media          *media.Store
+	Playlists      *playlist.Store
+	Playback       *playback.Player
 	MaxUploadBytes int64
 	BasePath       string
 }
@@ -46,12 +50,38 @@ func (a *Admin) StatusPayload() protocol.AdminStatusPayload {
 			ConnectedAtMs: ns.ConnectedAt.UnixMilli(),
 		})
 	}
+	var queue *protocol.QueueSnapshot
+	if a.Playback != nil {
+		q := a.Playback.Snapshot()
+		queue = &q
+	}
 	return protocol.AdminStatusPayload{
 		Scene:      snap.Scene,
+		Playing:    playingLabel(snap.Scene, snap.Params),
 		EpochMs:    snap.EpochMs,
 		NowMs:      nowMs,
 		AutoRotate: a.Director.AutoRotating(),
 		Nodes:      nodes,
+		Queue:      queue,
+	}
+}
+
+func playingLabel(sceneID string, params map[string]any) string {
+	switch sceneID {
+	case scene.SceneIdle:
+		return "idle"
+	case scene.SceneVideo, scene.SceneImage:
+		filename, _ := params["filename"].(string)
+		mode, _ := params["mode"].(string)
+		if filename == "" {
+			return sceneID
+		}
+		if mode == "" {
+			return filename
+		}
+		return filename + " (" + mode + ")"
+	default:
+		return sceneID
 	}
 }
 
@@ -69,6 +99,28 @@ func (a *Admin) ServeStatus(w http.ResponseWriter, r *http.Request) {
 
 type sceneChangeRequest struct {
 	Scene string `json:"scene"`
+}
+
+// ServeRestart re-broadcasts the current scene with its existing params so the
+// wall reseeks (for video/image) or reseeds (for procedural scenes). A no-op
+// when idle — the operator has nothing to restart.
+func (a *Admin) ServeRestart(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "POST only", http.StatusMethodNotAllowed)
+		return
+	}
+	snap := a.Director.Snapshot()
+	if snap.Scene == scene.SceneIdle {
+		http.Error(w, "nothing playing to restart", http.StatusBadRequest)
+		return
+	}
+	epoch := a.Director.Switch(snap.Scene, snap.Params)
+	a.Logger.Info("restart", "scene", snap.Scene, "epoch_ms", epoch)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"scene":    snap.Scene,
+		"epoch_ms": epoch,
+	})
 }
 
 func (a *Admin) ServeSceneSwitch(w http.ResponseWriter, r *http.Request) {

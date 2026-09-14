@@ -3,14 +3,15 @@ package protocol
 import "encoding/json"
 
 const (
-	TypeHello       = "hello"
-	TypeWelcome     = "welcome"
-	TypePing        = "ping"
-	TypePong        = "pong"
-	TypeSceneChange = "scene_change"
-	TypeTick        = "tick"
-	TypeAdminStatus = "admin_status"
-	TypeNodeStats   = "node_stats"
+	TypeHello         = "hello"
+	TypeWelcome       = "welcome"
+	TypePing          = "ping"
+	TypePong          = "pong"
+	TypeSceneChange   = "scene_change"
+	TypeTick          = "tick"
+	TypeAdminStatus   = "admin_status"
+	TypeNodeStats     = "node_stats"
+	TypeVideoDuration = "video_duration"
 )
 
 type Envelope struct {

@@ -105,6 +105,15 @@ export default function VideoSceneFactory() {
         state.duration = v.duration || 0;
         if (state.duration > 0) {
           v.currentTime = expectedPosition();
+          // Report natural duration to the server so the queue player can
+          // advance at the true end of the video instead of a fallback timer.
+          const videoID = params.video_id;
+          if (videoID && ctx.client && typeof ctx.client.send === 'function') {
+            ctx.client.send({
+              type: 'video_duration',
+              payload: { video_id: videoID, duration_s: state.duration }
+            });
+          }
         }
         const attempt = v.play();
         if (attempt && typeof attempt.catch === 'function') {

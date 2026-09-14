@@ -87,10 +87,33 @@ type AdminNodeStatus struct {
 
 type AdminStatusPayload struct {
 	Scene      string            `json:"scene"`
+	Playing    string            `json:"playing"`
 	EpochMs    int64             `json:"epoch_ms"`
 	NowMs      int64             `json:"now_ms"`
 	AutoRotate bool              `json:"auto_rotate"`
 	Nodes      []AdminNodeStatus `json:"nodes"`
+	Queue      *QueueSnapshot    `json:"queue,omitempty"`
+}
+
+type QueueItemView struct {
+	Kind      string `json:"kind"`
+	Label     string `json:"label"`
+	DurationS int    `json:"duration_s"`
+	Mode      string `json:"mode,omitempty"`
+	RefID     string `json:"ref_id,omitempty"`
+	Scene     string `json:"scene,omitempty"`
+}
+
+type QueueSnapshot struct {
+	Playing bool            `json:"playing"`
+	Loop    bool            `json:"loop"`
+	Index   int             `json:"index"`
+	Items   []QueueItemView `json:"items"`
+}
+
+type VideoDurationPayload struct {
+	VideoID    string  `json:"video_id"`
+	DurationS  float64 `json:"duration_s"`
 }
 
 type NodeStatsPayload struct {

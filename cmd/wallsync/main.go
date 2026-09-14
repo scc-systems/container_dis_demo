@@ -14,6 +14,9 @@ import (
 	"github.com/scc-systems/wallsync/internal/feeds"
 	"github.com/scc-systems/wallsync/internal/hub"
 	"github.com/scc-systems/wallsync/internal/media"
+	"github.com/scc-systems/wallsync/internal/playback"
+	"github.com/scc-systems/wallsync/internal/playlist"
+	"github.com/scc-systems/wallsync/internal/protocol"
 	"github.com/scc-systems/wallsync/internal/scene"
 	"github.com/scc-systems/wallsync/internal/web"
 )
@@ -36,6 +39,15 @@ func main() {
 	}
 	logger.Info("media store ready", "dir", mediaStore.Root(), "max_upload_bytes", cfg.MaxUploadBytes)
 
+	playlistStore, err := playlist.New(cfg.MediaDir)
+	if err != nil {
+		logger.Error("playlist store init failed", "err", err, "dir", cfg.MediaDir)
+		os.Exit(1)
+	}
+	logger.Info("playlist store ready", "path", playlistStore.Path(), "count", len(playlistStore.List()))
+
+	player := playback.New(director, mediaStore, cfg.BasePath, logger)
+
 	ticker := &feeds.Ticker{
 		Hub:      h,
 		Director: director,
@@ -48,6 +60,8 @@ func main() {
 		Director:       director,
 		Logger:         logger,
 		Media:          mediaStore,
+		Playlists:      playlistStore,
+		Playback:       player,
 		MaxUploadBytes: cfg.MaxUploadBytes,
 		BasePath:       cfg.BasePath,
 	}
@@ -58,6 +72,23 @@ func main() {
 		PingInterval: cfg.PingInterval,
 		Logger:       logger,
 		NodeCount:    cfg.NodeCount,
+		OnClientMessage: func(nodeID int, env protocol.Envelope) {
+			if env.Type != protocol.TypeVideoDuration {
+				return
+			}
+			var p protocol.VideoDurationPayload
+			if err := protocol.UnmarshalPayload(env, &p); err != nil {
+				return
+			}
+			if p.VideoID == "" || p.DurationS <= 0 {
+				return
+			}
+			ms := int64(p.DurationS * 1000)
+			if err := mediaStore.SetDuration(p.VideoID, ms); err != nil {
+				logger.Warn("SetDuration failed", "err", err, "video_id", p.VideoID)
+			}
+			player.ReportVideoDuration(p.VideoID, ms)
+		},
 	}
 
 	mux := http.NewServeMux()
@@ -68,6 +99,7 @@ func main() {
 	mux.HandleFunc("GET /admin", adminSrv.ServeAdmin)
 	mux.HandleFunc("GET /admin/status", adminSrv.ServeStatus)
 	mux.HandleFunc("POST /admin/scene", adminSrv.ServeSceneSwitch)
+	mux.HandleFunc("POST /admin/restart", adminSrv.ServeRestart)
 	mux.HandleFunc("GET /admin/ws", adminSrv.ServeAdminWS)
 	mux.HandleFunc("GET /admin/videos", adminSrv.ServeListVideos)
 	mux.HandleFunc("POST /admin/videos", adminSrv.ServeUploadVideo)
@@ -80,6 +112,22 @@ func main() {
 	mux.HandleFunc("POST /admin/play-image", adminSrv.ServePlayImage)
 	mux.HandleFunc("POST /admin/stop-image", adminSrv.ServeStopImage)
 	mux.HandleFunc("POST /admin/autorotate", adminSrv.ServeToggleAutorotate)
+
+	mux.HandleFunc("GET /admin/playlists", adminSrv.ServeListPlaylists)
+	mux.HandleFunc("POST /admin/playlists", adminSrv.ServeCreatePlaylist)
+	mux.HandleFunc("PUT /admin/playlists/{id}", adminSrv.ServeUpdatePlaylist)
+	mux.HandleFunc("DELETE /admin/playlists/{id}", adminSrv.ServeDeletePlaylist)
+
+	mux.HandleFunc("GET /admin/queue", adminSrv.ServeQueueSnapshot)
+	mux.HandleFunc("POST /admin/queue/load", adminSrv.ServeQueueLoad)
+	mux.HandleFunc("POST /admin/queue/items", adminSrv.ServeQueueAddItem)
+	mux.HandleFunc("DELETE /admin/queue/items/{index}", adminSrv.ServeQueueRemoveItem)
+	mux.HandleFunc("POST /admin/queue/reorder", adminSrv.ServeQueueReorder)
+	mux.HandleFunc("POST /admin/queue/play", adminSrv.ServeQueuePlay)
+	mux.HandleFunc("POST /admin/queue/pause", adminSrv.ServeQueuePause)
+	mux.HandleFunc("POST /admin/queue/skip", adminSrv.ServeQueueSkip)
+	mux.HandleFunc("POST /admin/queue/stop", adminSrv.ServeQueueStop)
+	mux.HandleFunc("POST /admin/queue/save-as", adminSrv.ServeQueueSaveAs)
 
 	var handler http.Handler = mux
 	if cfg.BasePath != "" {

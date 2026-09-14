@@ -22,16 +22,25 @@ html, body {
   inset: 0;
   display: grid;
   place-items: center;
-  color: #6b7684;
-  font-size: 28px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
   pointer-events: none;
   z-index: 10;
   transition: opacity 300ms ease;
 }
+#splash .splash-inner {
+  max-width: min(30vw, 900px);
+  text-align: center;
+  color: #e6f2ff;
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-shadow: 0 0 24px rgba(120, 180, 255, 0.6);
+}
 #splash.hidden { opacity: 0; }
-#splash.conflict { color: #f87171; }
+#splash.conflict .splash-inner {
+  color: #ffb4b4;
+  text-shadow: 0 0 24px rgba(248, 113, 113, 0.65);
+}
 
 #debug-hud {
   position: fixed;

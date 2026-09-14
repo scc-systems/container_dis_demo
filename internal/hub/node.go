@@ -2,7 +2,6 @@ package hub
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -26,6 +25,10 @@ type ConnHandler struct {
 	PingInterval time.Duration
 	Logger       *slog.Logger
 	NodeCount    int
+	// OnClientMessage, if set, is invoked once per unrecognised client frame.
+	// pong is handled inline; other message types fall through here for the
+	// wiring layer (main.go) to route. Callback fires from the read pump.
+	OnClientMessage func(nodeID int, env protocol.Envelope)
 }
 
 func (h *ConnHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -196,8 +199,9 @@ func (h *ConnHandler) readPump(ns *NodeState) {
 				}
 			}
 		default:
-			// Ignore unknown client-originated messages for now.
-			_ = json.RawMessage{}
+			if h.OnClientMessage != nil {
+				h.OnClientMessage(ns.ID, env)
+			}
 		}
 	}
 }

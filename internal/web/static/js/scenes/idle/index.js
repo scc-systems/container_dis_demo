@@ -11,8 +11,8 @@ function initParticles(W, H) {
       y: Math.random() * H,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
-      r: 0.8 + Math.random() * 1.4,
-      a: 0.12 + Math.random() * 0.25,
+      r: 1.4 + Math.random() * 1.6,
+      a: 0.35 + Math.random() * 0.35,
     });
   }
   return out;
@@ -58,14 +58,30 @@ export default function IdleSceneFactory() {
       state.stageEl = document.getElementById('stage');
       if (state.stageEl) state.stageEl.style.display = 'none';
 
-      // Inject keyframe animation
+      // Inject keyframe animation. Palette is tuned for a back-projected
+      // portrait rectangle — bright, high-contrast, glow-heavy so it survives
+      // the loss in projection.
       const style = document.createElement('style');
       style.textContent = `
         @keyframes idle-pulse {
-          0%,100% { color:#0d2a40; text-shadow:none; }
-          50% { color:#2a7abf; text-shadow:0 0 30px rgba(42,122,191,0.5); }
+          0%,100% { color:#4a9fe6; text-shadow:0 0 10px rgba(120,180,255,0.35); }
+          50%     { color:#ffffff; text-shadow:0 0 40px rgba(120,180,255,0.9), 0 0 8px rgba(255,255,255,0.6); }
         }
         .idle-ready { animation: idle-pulse 3.5s ease-in-out infinite; }
+        #idle-safe {
+          position:absolute;
+          left:50%; top:50%;
+          transform:translate(-50%,-50%);
+          width:min(40vw, 1600px);
+          height:min(80vh, 2400px);
+          display:flex; flex-direction:column; align-items:center; justify-content:center;
+          gap:6%;
+          padding:6% 0;
+          box-sizing:border-box;
+        }
+        #idle-safe .idle-stats-wrap {
+          margin-top:auto;
+        }
       `;
       document.head.appendChild(style);
       state.styleEl = style;
@@ -84,46 +100,57 @@ export default function IdleSceneFactory() {
       state.particles = initParticles(pcanvas.width, pcanvas.height);
       container.appendChild(pcanvas);
 
-      // Text overlay
-      const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:absolute;inset:0;pointer-events:none;font-family:ui-monospace,"SF Mono",Menlo,monospace;';
-      container.appendChild(overlay);
+      // Central portrait safe-area wrapper — everything visible on the projected
+      // surface lives inside this. Particles fill the full canvas behind.
+      const safe = document.createElement('div');
+      safe.id = 'idle-safe';
+      safe.style.cssText = 'pointer-events:none;font-family:ui-monospace,"SF Mono",Menlo,monospace;';
+      container.appendChild(safe);
 
-      // NODE N
+      // NODE N — single line, never wraps. Letter-spacing is tight enough that
+      // the whole label fits inside the portrait safe-area on any viewport.
       const nodeLabel = document.createElement('div');
       nodeLabel.textContent = `NODE ${ctx.nodeId}`;
       nodeLabel.style.cssText = [
-        'position:absolute', 'top:14%', 'width:100%', 'text-align:center',
-        'font-size:clamp(2rem,6vw,4rem)', 'letter-spacing:0.45em',
-        'color:#0a2030', 'text-transform:uppercase',
+        'width:100%', 'text-align:center', 'white-space:nowrap',
+        'font-size:clamp(2.4rem,8vw,7rem)', 'letter-spacing:0.15em',
+        'padding-left:0.15em', // compensate trailing letter-spacing so it visually centres
+        'font-weight:700',
+        'color:#e6f2ff', 'text-transform:uppercase',
+        'text-shadow:0 0 22px rgba(120,180,255,0.65)',
+        'line-height:1',
       ].join(';');
-      overlay.appendChild(nodeLabel);
+      safe.appendChild(nodeLabel);
 
       // SYSTEM READY
       const readyLabel = document.createElement('div');
       readyLabel.textContent = 'SYSTEM READY';
       readyLabel.className = 'idle-ready';
       readyLabel.style.cssText = [
-        'position:absolute', 'top:50%', 'width:100%', 'text-align:center',
-        'transform:translateY(-50%)',
-        'font-size:clamp(1rem,2.5vw,1.6rem)', 'letter-spacing:0.35em',
-        'text-transform:uppercase',
+        'width:100%', 'text-align:center', 'white-space:nowrap',
+        'font-size:clamp(1.4rem,3.8vw,3rem)', 'letter-spacing:0.28em',
+        'padding-left:0.28em', // compensate trailing letter-spacing so it visually centres
+        'font-weight:600', 'text-transform:uppercase',
+        'line-height:1',
+        'margin-top:0.6em', // push down a smidge below NODE N
       ].join(';');
       state.readyEl = readyLabel;
-      overlay.appendChild(readyLabel);
+      safe.appendChild(readyLabel);
 
-      // Stats card
+      // Stats card — pinned to bottom of the safe area so it stays projected.
+      const statsWrap = document.createElement('div');
+      statsWrap.className = 'idle-stats-wrap';
       const statsCard = document.createElement('div');
       statsCard.style.cssText = [
-        'position:absolute', 'bottom:16px', 'left:16px',
-        'padding:10px 14px',
-        'background:rgba(9,13,18,0.75)', 'border:1px solid #1a2535',
-        'border-radius:6px', 'font-size:11px', 'line-height:1.8',
-        'color:#2a5070', 'white-space:pre',
+        'padding:16px 24px',
+        'background:rgba(9,13,18,0.85)', 'border:1px solid #3a5a80',
+        'border-radius:8px', 'font-size:clamp(16px,1.8vw,26px)', 'line-height:1.7',
+        'color:#c5d9ee', 'white-space:pre',
       ].join(';');
       statsCard.textContent = formatStats();
       state.statsEl = statsCard;
-      overlay.appendChild(statsCard);
+      statsWrap.appendChild(statsCard);
+      safe.appendChild(statsWrap);
 
       document.body.appendChild(container);
 
@@ -153,7 +180,7 @@ export default function IdleSceneFactory() {
         if (p.y > H)  { p.vy = -Math.abs(p.vy); p.y = H; }
         pctx.beginPath();
         pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        pctx.fillStyle = `rgba(50,130,200,${p.a})`;
+        pctx.fillStyle = `rgba(140,190,240,${p.a})`;
         pctx.fill();
       }
 

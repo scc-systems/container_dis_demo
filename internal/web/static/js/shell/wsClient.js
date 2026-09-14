@@ -65,6 +65,10 @@ export class WsClient extends EventTarget {
     }
   }
 
+  // send is the public counterpart of _send for scenes reporting client-derived
+  // state back to the server (e.g. a video's natural duration).
+  send(obj) { this._send(obj); }
+
   _onMessage(data) {
     let env;
     try { env = JSON.parse(data); } catch (_) { return; }

@@ -42,6 +42,10 @@ type VideoMeta struct {
 	SizeBytes   int64     `json:"size_bytes"`
 	UploadedAt  time.Time `json:"uploaded_at"`
 	URLPath     string    `json:"url_path"`
+	// DurationMs is the natural playback length reported by a client after the
+	// video element's metadata loads. Zero means unknown (no client has reported
+	// yet). Only meaningful for video files.
+	DurationMs int64 `json:"duration_ms,omitempty"`
 }
 
 type Store struct {
@@ -167,6 +171,32 @@ func (s *Store) Get(id string) (VideoMeta, bool) {
 	defer s.mu.RUnlock()
 	m, ok := s.items[id]
 	return m, ok
+}
+
+// SetDuration records the natural playback length for a video. Idempotent —
+// a repeated report with the same value is a no-op. Persists to the sidecar.
+func (s *Store) SetDuration(id string, ms int64) error {
+	if !validID(id) {
+		return ErrInvalidID
+	}
+	if ms <= 0 {
+		return nil
+	}
+	s.mu.Lock()
+	m, ok := s.items[id]
+	if !ok {
+		s.mu.Unlock()
+		return ErrNotFound
+	}
+	if m.DurationMs == ms {
+		s.mu.Unlock()
+		return nil
+	}
+	m.DurationMs = ms
+	s.items[id] = m
+	err := s.writeMeta(m)
+	s.mu.Unlock()
+	return err
 }
 
 func (s *Store) Delete(id string) error {
