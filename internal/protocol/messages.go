@@ -106,6 +106,7 @@ type QueueItemView struct {
 
 type QueueSnapshot struct {
 	Playing bool            `json:"playing"`
+	Paused  bool            `json:"paused"`
 	Loop    bool            `json:"loop"`
 	Index   int             `json:"index"`
 	Items   []QueueItemView `json:"items"`

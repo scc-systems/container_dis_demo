@@ -282,6 +282,37 @@ func TestReportVideoDurationIgnoredForWrongVideo(t *testing.T) {
 	}
 }
 
+func TestResumeDoesNotReSwitchScene(t *testing.T) {
+	p, fd := newPlayer(t)
+	p.Load([]playlist.Item{
+		{Kind: playlist.KindScene, Scene: scene.SceneThreeUnified, DurationS: 60},
+		{Kind: playlist.KindScene, Scene: scene.SceneWarpJump, DurationS: 60},
+	}, false)
+	if err := p.Play(); err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(50 * time.Millisecond)
+	p.Pause()
+	snap := p.Snapshot()
+	if snap.Playing || !snap.Paused {
+		t.Fatalf("after Pause expected playing=false paused=true, got %+v", snap)
+	}
+	callsBeforeResume := len(fd.calls())
+	if err := p.Play(); err != nil {
+		t.Fatalf("resume Play: %v", err)
+	}
+	// Resume must NOT trigger another Director.Switch — the paused item is
+	// still on screen; a re-switch would re-seek video to 0 and flash a fade.
+	if len(fd.calls()) != callsBeforeResume {
+		t.Fatalf("resume caused an unexpected scene switch: %+v", fd.calls())
+	}
+	snap = p.Snapshot()
+	if !snap.Playing || snap.Paused {
+		t.Fatalf("after resume expected playing=true paused=false, got %+v", snap)
+	}
+	p.Pause()
+}
+
 func TestPauseStopsTimer(t *testing.T) {
 	p, fd := newPlayer(t)
 	p.Load([]playlist.Item{

@@ -18,7 +18,7 @@ var adminTmpl = template.Must(template.New("admin").Parse(`<!doctype html>
   #countdown { color:#9ba7b6; font-family:ui-monospace,monospace; font-size:12px; }
   #cards { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; margin:0 0 16px; }
   #now-playing { display:flex; align-items:center; gap:12px; background:#141a22; border:1px solid #212a35; border-radius:8px; padding:12px 14px; margin:0 0 20px; flex-wrap:wrap; }
-  #now-playing .np-label { flex:1; min-width:0; font-family:ui-monospace,monospace; font-size:13px; color:#dfe6ef; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #now-playing .np-label { flex:1; min-width:0; font-family:ui-monospace,monospace; font-size:13px; color:#dfe6ef; overflow-wrap:anywhere; }
   #now-playing .np-label .np-tag { color:#6b7684; letter-spacing:0.08em; text-transform:uppercase; font-size:11px; margin-right:8px; }
   #now-playing .np-buttons { display:flex; gap:6px; flex-wrap:wrap; }
   #now-playing button { font-size:13px; }
@@ -29,13 +29,16 @@ var adminTmpl = template.Must(template.New("admin").Parse(`<!doctype html>
   .queue-item { flex-shrink:0; background:#141a22; border:1px solid #212a35; border-radius:6px; padding:6px 10px; font-size:12px; display:flex; align-items:center; gap:8px; }
   .queue-item.current { border-color:#2a6a35; box-shadow:0 0 8px rgba(74,222,128,0.15); }
   .queue-item .qi-kind { color:#6b7684; font-size:10px; text-transform:uppercase; letter-spacing:0.08em; }
-  .queue-item .qi-label { font-family:ui-monospace,monospace; }
+  .queue-item .qi-label { font-family:ui-monospace,monospace; min-width:0; overflow-wrap:anywhere; }
   .queue-item .qi-dur { color:#9ba7b6; font-family:ui-monospace,monospace; font-size:11px; }
   .queue-item .qi-remove { background:none; border:none; color:#6b7684; padding:0 4px; font-size:14px; cursor:pointer; }
   .queue-item .qi-remove:hover { color:#f87171; }
   .card { background:#141a22; border:1px solid #212a35; border-radius:8px; padding:12px; }
   .card h2 { margin:0 0 8px; font-size:14px; letter-spacing:0.05em; }
-  .row { display:flex; justify-content:space-between; font-size:12px; padding:2px 0; font-family:ui-monospace,monospace; }
+  .row { display:flex; justify-content:space-between; gap:8px; font-size:12px; padding:2px 0; font-family:ui-monospace,monospace; }
+  .row > span:first-child { flex-shrink:0; }
+  .playing-row { align-items:flex-start; }
+  .playing-val { text-align:right; min-width:0; overflow-wrap:anywhere; }
   .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
   .green { background:#4ade80; box-shadow:0 0 8px #4ade80aa; }
   .amber { background:#fbbf24; box-shadow:0 0 8px #fbbf24aa; }
@@ -59,7 +62,7 @@ var adminTmpl = template.Must(template.New("admin").Parse(`<!doctype html>
   .scene-btn.active { background:#0f2a18; border-color:#2a6a35; color:#4ade80; box-shadow:0 0 10px rgba(74,222,128,0.12); }
   #image-list, #video-list { display:flex; flex-direction:column; gap:6px; margin:8px 0; }
   .media-row { display:flex; align-items:center; gap:8px; background:#141a22; border:1px solid #212a35; border-radius:6px; padding:8px 10px; font-size:13px; }
-  .media-row .name { flex:1; font-family:ui-monospace,monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .media-row .name { flex:1; min-width:0; font-family:ui-monospace,monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .media-row .size { color:#9ba7b6; font-family:ui-monospace,monospace; font-size:11px; flex-shrink:0; }
   .row-buttons { display:flex; gap:6px; flex-shrink:0; flex-wrap:wrap; }
   .danger { background:#3a1e1e; border-color:#5a2c2c; }
@@ -81,7 +84,7 @@ var adminTmpl = template.Must(template.New("admin").Parse(`<!doctype html>
   .playlist-editor .pe-items { display:flex; flex-direction:column; gap:6px; }
   .playlist-editor .pe-item { display:flex; gap:6px; align-items:center; background:#0b0e12; border:1px solid #212a35; border-radius:6px; padding:8px; flex-wrap:wrap; }
   .playlist-editor .pe-item .pe-idx { color:#6b7684; font-family:ui-monospace,monospace; font-size:11px; width:28px; text-align:right; }
-  .playlist-editor .pe-item .pe-label { flex:1; min-width:140px; font-family:ui-monospace,monospace; font-size:12px; }
+  .playlist-editor .pe-item .pe-label { flex:1; min-width:0; font-family:ui-monospace,monospace; font-size:12px; overflow-wrap:anywhere; }
   .playlist-editor .pe-item input[type=number] { width:72px; }
   .playlist-editor .pe-actions { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
 
@@ -103,7 +106,9 @@ var adminTmpl = template.Must(template.New("admin").Parse(`<!doctype html>
     #now-playing { flex-direction:column; align-items:stretch; gap:10px; }
     #now-playing .np-label { text-align:center; white-space:normal; }
     #now-playing .np-buttons { justify-content:center; }
-    #now-playing button { flex:1 1 auto; min-height:44px; }
+    #now-playing button { flex:0 1 auto; min-height:44px; }
+    #now-playing .np-buttons { flex-wrap:wrap; justify-content:stretch; }
+    #now-playing .np-buttons button { flex:1 1 40%; }
     #queue-strip { flex-direction:column; overflow-x:visible; }
     .queue-item { justify-content:space-between; }
     .playlist-editor input, .playlist-editor select { width:100%; box-sizing:border-box; }
@@ -120,6 +125,7 @@ var adminTmpl = template.Must(template.New("admin").Parse(`<!doctype html>
   <div id="now-playing">
     <div class="np-buttons">
       <button id="np-play"    class="primary" disabled title="no queue loaded">▶ play</button>
+      <button id="np-pause"   disabled hidden title="pause on current item">⏸ pause</button>
       <button id="np-restart" disabled title="nothing playing">↻ restart</button>
       <button id="np-skip"    disabled hidden title="skip to next queue item">⏭ next</button>
       <button id="np-stop"    class="danger" disabled hidden title="stop queue">⏹ stop</button>
@@ -217,6 +223,7 @@ pollOnce();
 // ── Now Playing ──────────────────────────────────────────────────────────────
 const npCurrent = document.getElementById('np-current');
 const npPlay    = document.getElementById('np-play');
+const npPause   = document.getElementById('np-pause');
 const npRestart = document.getElementById('np-restart');
 const npSkip    = document.getElementById('np-skip');
 const npStop    = document.getElementById('np-stop');
@@ -232,13 +239,24 @@ function renderNowPlaying(status) {
   const queue = status.queue;
   const hasQueue = queue && Array.isArray(queue.items) && queue.items.length > 0;
   const playing = hasQueue && queue.playing;
-  npPlay.hidden  = false;
-  npSkip.hidden  = !hasQueue;
-  npStop.hidden  = !hasQueue;
-  npPlay.disabled    = !hasQueue || playing;
-  npSkip.disabled    = !hasQueue;
-  npStop.disabled    = !hasQueue;
-  npPlay.title = hasQueue ? (playing ? 'queue already playing' : 'start queue') : 'no queue loaded';
+  const paused  = hasQueue && queue.paused;
+
+  // Play button doubles as resume when paused; hide it while actively playing.
+  npPlay.hidden = playing;
+  npPlay.disabled = !hasQueue;
+  npPlay.textContent = paused ? '▶ resume' : '▶ play';
+  npPlay.title = hasQueue
+    ? (paused ? 'resume on current item' : 'start queue')
+    : 'no queue loaded';
+
+  // Pause button only shown while actively playing.
+  npPause.hidden = !playing;
+  npPause.disabled = !playing;
+
+  npSkip.hidden = !hasQueue;
+  npStop.hidden = !hasQueue;
+  npSkip.disabled = !hasQueue;
+  npStop.disabled = !hasQueue;
 }
 
 npRestart.addEventListener('click', async () => {
@@ -248,6 +266,10 @@ npRestart.addEventListener('click', async () => {
 npPlay.addEventListener('click', async () => {
   if (npPlay.disabled) return;
   try { await fetch(BASE + '/admin/queue/play', {method:'POST'}); } catch(e) {}
+});
+npPause.addEventListener('click', async () => {
+  if (npPause.disabled) return;
+  try { await fetch(BASE + '/admin/queue/pause', {method:'POST'}); } catch(e) {}
 });
 npSkip.addEventListener('click', async () => {
   if (npSkip.disabled) return;
@@ -269,7 +291,7 @@ function renderQueueStrip(queue) {
   }
   queueStrip.classList.remove('empty');
   queueStrip.innerHTML = queue.items.map((it, i) => {
-    const current = i === queue.index && queue.playing;
+    const current = i === queue.index && (queue.playing || queue.paused);
     const durLabel = (it.kind === 'video' && !it.duration_s) ? 'end' : (it.duration_s || 0) + 's';
     return "<div class='queue-item" + (current ? ' current' : '') + "' data-index='" + i + "'>" +
       "<span class='qi-kind'>" + escapeHtml(it.kind) + "</span>" +

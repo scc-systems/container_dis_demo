@@ -6,8 +6,11 @@ let mountingLock = false;
 
 // Synchronized dip-to-black between scenes. Because every node cuts over at the
 // same server epoch, running this fade on the same timeline on all 5 walls
-// gives a lockstep transition — no protocol change required.
-const FADE_MS = 200;
+// gives a lockstep transition — no protocol change required. Must be strictly
+// less than the server's SceneSwitchLead (currently 2000ms) so the overlay is
+// fully opaque when the cut happens; ~200ms of buffer covers WS latency + the
+// first rAF after the scene_change arrives.
+const FADE_MS = 1800;
 let overlay = null;
 
 function ensureOverlay() {

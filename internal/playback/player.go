@@ -48,7 +48,14 @@ type Player struct {
 	index   int
 	loop    bool
 	playing bool
-	timer   *time.Timer
+	// paused is true when we were playing, then Pause() was called. The wall
+	// still shows the paused item (video keeps looping via <video loop>, image
+	// and scene stay mounted); a subsequent Play() must re-arm the timer WITHOUT
+	// a scene switch so the video doesn't re-seek to t=0. Distinct from
+	// "!playing && !paused" which means the queue has never started (or was
+	// stopped) and Play() should do a full mount.
+	paused bool
+	timer  *time.Timer
 	// awaitingDurationFor is set when the currently-playing item is a video
 	// with unknown natural duration and we've armed the fallback timer. Cleared
 	// when a duration report arrives (and the timer is re-armed) or on any
@@ -77,6 +84,7 @@ func (p *Player) Load(items []playlist.Item, loop bool) {
 	p.index = 0
 	p.loop = loop
 	p.playing = false
+	p.paused = false
 }
 
 func (p *Player) Append(item playlist.Item) error {
@@ -185,14 +193,27 @@ func (p *Player) Play() error {
 	if p.index < 0 || p.index >= len(p.items) {
 		p.index = 0
 	}
+	// Resume path: the paused item is still on the wall, so re-arm the timer
+	// without a scene switch. Video keeps looping seamlessly; no re-seek, no
+	// fade-to-black flash.
+	if p.paused {
+		p.paused = false
+		p.playing = true
+		p.armTimerLocked(p.items[p.index])
+		return nil
+	}
 	return p.startCurrentLocked()
 }
 
 func (p *Player) Pause() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	if !p.playing {
+		return
+	}
 	p.stopTimerLocked()
 	p.playing = false
+	p.paused = true
 }
 
 // Skip advances immediately to the next item.
@@ -212,6 +233,7 @@ func (p *Player) Stop() {
 	defer p.mu.Unlock()
 	p.stopTimerLocked()
 	p.playing = false
+	p.paused = false
 	p.index = 0
 	p.director.Switch(scene.SceneIdle, nil)
 }
@@ -233,6 +255,7 @@ func (p *Player) Snapshot() protocol.QueueSnapshot {
 	}
 	return protocol.QueueSnapshot{
 		Playing: p.playing,
+		Paused:  p.paused,
 		Loop:    p.loop,
 		Index:   p.index,
 		Items:   items,
@@ -285,6 +308,7 @@ func (p *Player) startCurrentLocked() error {
 		return err
 	}
 	p.playing = true
+	p.paused = false
 	p.armTimerLocked(item)
 	return nil
 }

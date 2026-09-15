@@ -36,7 +36,7 @@ func Load() Config {
 		PingInterval:    envDur("WALLSYNC_PING_MS", 1000) * time.Millisecond,
 		InitialScene:    envStr("WALLSYNC_INITIAL_SCENE", "idle"),
 		AutoRotate:      time.Duration(envInt("WALLSYNC_AUTOROTATE_S", 20)) * time.Second,
-		SceneSwitchLead: 800 * time.Millisecond,
+		SceneSwitchLead: 2000 * time.Millisecond,
 		MediaDir:        envStr("WALLSYNC_MEDIA_DIR", "./data/videos"),
 		MaxUploadBytes:  int64(envInt("WALLSYNC_MAX_UPLOAD_MB", 500)) * 1024 * 1024,
 		NodeCount:       5,
