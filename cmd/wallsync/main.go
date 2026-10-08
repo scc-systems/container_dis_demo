@@ -112,6 +112,7 @@ func main() {
 	mux.HandleFunc("POST /admin/play-image", adminSrv.ServePlayImage)
 	mux.HandleFunc("POST /admin/stop-image", adminSrv.ServeStopImage)
 	mux.HandleFunc("POST /admin/autorotate", adminSrv.ServeToggleAutorotate)
+	mux.HandleFunc("POST /admin/exit", adminSrv.ServeExit)
 
 	mux.HandleFunc("GET /admin/playlists", adminSrv.ServeListPlaylists)
 	mux.HandleFunc("POST /admin/playlists", adminSrv.ServeCreatePlaylist)

@@ -120,6 +120,7 @@ var adminTmpl = template.Must(template.New("admin").Parse(`<!doctype html>
     <span class="now">Scene: <b id="scene-name">–</b></span>
     <span id="countdown"></span>
     <button id="autorotate-btn">auto-rotate off</button>
+    <button id="restart-wallsync-btn" class="danger" title="exit the process; docker will restart it">Restart Wallsync</button>
   </div>
   <div id="cards"></div>
   <div id="now-playing">
@@ -327,6 +328,15 @@ autorotateBtn.addEventListener('click', async () => {
     autoRotateOn = j.auto_rotate;
     updateAutoRotateBtn();
   } catch(e) {}
+});
+
+// ── Restart Wallsync ─────────────────────────────────────────────────────────
+const restartBtn = document.getElementById('restart-wallsync-btn');
+restartBtn.addEventListener('click', async () => {
+  if (!confirm('Restart Wallsync?\n\nThe process will exit and Docker will start it again. The wall will be black for a few seconds.')) return;
+  restartBtn.disabled = true;
+  restartBtn.textContent = 'restarting…';
+  try { await fetch(BASE + '/admin/exit', { method: 'POST' }); } catch(e) {}
 });
 
 // ── Scene grid ───────────────────────────────────────────────────────────────

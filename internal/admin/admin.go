@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/coder/websocket"
@@ -143,6 +144,25 @@ func (a *Admin) ServeSceneSwitch(w http.ResponseWriter, r *http.Request) {
 		"scene":    req.Scene,
 		"epoch_ms": epoch,
 	})
+}
+
+// ServeExit flushes a success response and then exits the process with code 0,
+// relying on Docker's restart policy to bring wallsync back up.
+func (a *Admin) ServeExit(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "POST only", http.StatusMethodNotAllowed)
+		return
+	}
+	a.Logger.Info("admin requested exit; relying on docker restart policy")
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	_ = json.NewEncoder(w).Encode(map[string]any{"ok": true})
+	if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+	go func() {
+		time.Sleep(200 * time.Millisecond)
+		os.Exit(0)
+	}()
 }
 
 func (a *Admin) ServeAdminWS(w http.ResponseWriter, r *http.Request) {
