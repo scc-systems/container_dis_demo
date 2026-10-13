@@ -1,0 +1,19 @@
+{
+  "name": "wallsync (Go 1.23)",
+  "image": "mcr.microsoft.com/devcontainers/go:1-1.23-bookworm",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "wallsync HTTP",
+      "onAutoForward": "openPreview",
+      "visibility": "public"
+    }
+  },
+  "postCreateCommand": "go mod download",
+  "customizations": {
+    "vscode": {
+      "extensions": ["golang.go"]
+    }
+  },
+  "remoteUser": "vscode"
+}
