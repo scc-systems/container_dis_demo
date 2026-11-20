@@ -21,12 +21,15 @@ import (
 	"github.com/scc-systems/wallsync/internal/web"
 )
 
+// version is set at build time with -ldflags "-X main.version=...".
+var version = "dev"
+
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	slog.SetDefault(logger)
 
 	cfg := config.Load()
-	logger.Info("startup", "addr", cfg.Addr, "tick_hz", cfg.TickHz, "initial_scene", cfg.InitialScene,
+	logger.Info("startup", "version", version, "addr", cfg.Addr, "tick_hz", cfg.TickHz, "initial_scene", cfg.InitialScene,
 		"wall_w", cfg.WallWidth, "wall_h", cfg.WallHeight, "per_node_w", cfg.PerNodeWidth, "per_node_h", cfg.PerNodeHeight)
 
 	h := hub.New(logger, cfg.NodeCount)
