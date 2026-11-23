@@ -115,3 +115,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge "$PR_URL" --merge --delete-branch
+
+  # Assign a human when a Dependabot Actions update can't be merged automatically.
+  dependabot-assign:
+    needs: [test, build, dependabot-automerge]
+    if: >-
+      failure() &&
+      github.event_name == 'pull_request' &&
+      github.actor == 'dependabot[bot]' &&
+      startsWith(github.head_ref, 'dependabot/github_actions/')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Assign
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr edit "$PR_URL" --add-assignee mavi0

@@ -11,6 +11,7 @@ updates:
       go-deps:
         patterns: ["*"]
         update-types: [minor, patch]
+    assignees: [mavi0] # merged by hand, see dependabot-release.yml
     commit-message:
       prefix: build(deps)
 
@@ -21,6 +22,7 @@ updates:
       day: monday
       time: "07:00"
       timezone: Europe/London
+    assignees: [mavi0] # merged by hand, see dependabot-release.yml
     commit-message:
       prefix: build(deps)
 
